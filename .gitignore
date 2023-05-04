@@ -1,0 +1,8 @@
+.env
+
+node_modules
+jsonexamples
+
+package-lock.json
+
+test.js
