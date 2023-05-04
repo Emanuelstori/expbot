@@ -7,8 +7,6 @@ on:
 jobs:
   build:
     runs-on: self-hosted
-
-steps:
-  - run:
-    npm i
-    npm run dev
+    steps:
+      - run: npm i
+      - run: npm run dev
