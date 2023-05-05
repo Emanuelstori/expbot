@@ -9,6 +9,6 @@ var memberSchema = new Schema({
     xp_voice: Number,
     xp_chat: Number,
     xp_bonus: Number,
-  },
+  }
 });
 module.exports = mongoose.model("members", memberSchema);
