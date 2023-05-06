@@ -1,5 +1,4 @@
 name: Node.js CI
-#agora vai pls
 on:
   push:
     branches: main
