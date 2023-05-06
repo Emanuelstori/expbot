@@ -11,4 +11,4 @@ jobs:
     steps:
       - run: git pull
       - run: npm i
-      - run: npm run dev
+      - run: pm2 restart expBot
