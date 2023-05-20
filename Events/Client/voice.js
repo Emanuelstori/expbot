@@ -78,7 +78,7 @@ function saveData(id, tempo) {
     data[id].tempo += tempo;
   } else {
     // Se não existir, cria um novo registro
-    data[id] = { id, tempo };
+    data[id] = { tempo };
   }
 
   // Salva o objeto de dados atualizado no arquivo JSON
