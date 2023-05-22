@@ -1,8 +1,9 @@
 const config = require(`../../config/${process.env.MODE}`);
-const memberDb = require('../../Schemas/memberSchema.js');
+const memberDb = require("../../Schemas/memberSchema.js");
+var cron = require("node-cron");
 
 module.exports = {
-  name: 'ready',
+  name: "ready",
   once: true,
   async execute(client) {
     const guild = client.guilds.resolve(config.guildId);
@@ -10,27 +11,40 @@ module.exports = {
 
     allMembers.forEach(async (element) => {
       if (!element.user.bot) {
-        const result = await memberDb.findOne({ _id: element.user.id });
-        const member = guild.members.cache.get(element.user.id);
-        const userRoles = [...member.roles.cache.keys()];
-        const levels = Object.values(config.roles.levels);
+        let result = await memberDb.findOne({ _id: element.user.id });
+        let member = guild.members.cache.get(element.user.id);
+        let userRoles = [...member.roles.cache.keys()];
+        let levels = Object.values(config.roles.levels);
 
-        for (const value of result.roles) {
-          if (!userRoles.includes(value) && levels.includes(value)) {
-            const key = Object.keys(config.roles.levels).find(
-              (key) => config.roles.levels[key] === value
-            );
+        if (result) {
+          for (const value of result.roles) {
+            if (!userRoles.includes(value) && levels.includes(value)) {
+              const key = Object.keys(config.roles.levels).find(
+                (key) => config.roles.levels[key] === value
+              );
 
-            if (key) {
-              const role = guild.roles.cache.find((role) => role.id === value);
-              member.roles.add(role);
-              console.log(`${element.user.id} level ${key}`);
+              if (key) {
+                const role = guild.roles.cache.find(
+                  (role) => role.id === value
+                );
+                member.roles.add(role);
+                console.log(`${element.user.id} level ${key}`);
+              }
             }
           }
         }
       }
     });
-
-    console.log('BOT online');
+    console.log("BOT online");
   },
 };
+
+cron.schedule("*/30 * * * *", async () => {
+  // Lógica a ser executada a cada 30 minutos
+  try {
+    const updateDb = require("../../helpers/updateDb.js");
+    await updateDb();
+  } catch (err) {
+    console.log(err);
+  }
+});

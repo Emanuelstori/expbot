@@ -1,8 +1,13 @@
 const fs = require("fs");
-const path = "database/callinfo.json";
+const POINTS_FILE = "database/callinfo.json";
 
 const usuariosAtivos = {};
 const mutadosRecentemente = {};
+
+// Verifica se o arquivo existe, cria um arquivo vazio se não existir
+if (!fs.existsSync(POINTS_FILE)) {
+  fs.writeFileSync(POINTS_FILE, "{}");
+}
 
 module.exports = {
   name: "voiceStateUpdate",
@@ -34,26 +39,31 @@ module.exports = {
         }
       }
     }
-    async function connected(idUsuario) {
-      usuariosAtivos[idUsuario] = {
-        horaConexao: performance.now(),
-        tempoAtivo: 0,
-      };
-      usuariosAtivos[idUsuario] = {
-        horaConexao: performance.now(),
-        tempoAtivo: 0,
-      };
-    }
-
-    async function disconnected(idUsuario) {
-      const horaDesconexao = performance.now();
-      const usuarioAtivo = usuariosAtivos[idUsuario];
-      usuarioAtivo.tempoAtivo += horaDesconexao - usuarioAtivo.horaConexao;
-      saveData(idUsuario, getCallTime(idUsuario));
-      delete usuariosAtivos[idUsuario];
-    }
   },
 };
+
+function connected(idUsuario) {
+  usuariosAtivos[idUsuario] = {
+    horaConexao: performance.now(),
+    tempoAtivo: 0,
+  };
+}
+
+function disconnected(idUsuario) {
+  const horaDesconexao = performance.now();
+  const usuarioAtivo = usuariosAtivos[idUsuario];
+  usuarioAtivo.tempoAtivo += horaDesconexao - usuarioAtivo.horaConexao;
+  try {
+    pointsData = JSON.parse(fs.readFileSync(POINTS_FILE));
+  } catch (err) {
+    console.error(`Erro ao carregar o arquivo ${POINTS_FILE}: ${err}`);
+    return;
+  }
+  let userPoints = pointsData[idUsuario] || 0;
+  userPoints += getCallTime(idUsuario);
+  saveData(idUsuario, userPoints);
+  delete usuariosAtivos[idUsuario];
+}
 
 function getCallTime(idUsuario) {
   const usuarioAtivo = usuariosAtivos[idUsuario];
@@ -62,25 +72,21 @@ function getCallTime(idUsuario) {
   return tempoTotalSegundos;
 }
 
-// Função para armazenar os dados em um arquivo JSON
-function saveData(id, tempo) {
-  let data = {};
-
-  // Verifica se o arquivo JSON existe e o lê
-  if (fs.existsSync(path)) {
-    const json = fs.readFileSync(path);
-    data = JSON.parse(json);
+function saveData(id, pontos) {
+  let pointsData;
+  try {
+    pointsData = JSON.parse(fs.readFileSync(POINTS_FILE));
+  } catch (err) {
+    console.error(`Erro ao carregar o arquivo ${POINTS_FILE}: ${err}`);
+    return;
   }
-
-  // Verifica se já existe um registro para o usuário
-  if (data.hasOwnProperty(id)) {
-    // Se existir, soma o tempo novo ao tempo existente
-    data[id].tempo += tempo;
-  } else {
-    // Se não existir, cria um novo registro
-    data[id] = { id, tempo };
+  pointsData[id] = pontos;
+  try {
+    fs.writeFileSync(POINTS_FILE, JSON.stringify(pointsData));
+    console.log(`Pontos atualizados para o usuário ${id}: ${pontos}`);
+  } catch (err) {
+    console.error(
+      `Erro ao salvar os pontos do usuário ${id} no arquivo ${POINTS_FILE}: ${pontos}`
+    );
   }
-
-  // Salva o objeto de dados atualizado no arquivo JSON
-  fs.writeFileSync(path, JSON.stringify(data));
 }
