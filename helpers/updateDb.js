@@ -165,6 +165,29 @@ async function updateDb() {
   } catch (error) {
     console.error("Erro ao atualizar o banco de dados:", error);
   }
+  try {
+    const fs = require("fs");
+
+    // Limpar chatinfo.json
+    fs.writeFile("database/chatinfo.json", "{}", (err) => {
+      if (err) {
+        console.error("Erro ao limpar chatinfo.json", err);
+      } else {
+        console.log("chatinfo.json limpo com sucesso.");
+      }
+    });
+
+    // Limpar callinfo.json
+    fs.writeFile("database/callinfo.json", "{}", (err) => {
+      if (err) {
+        console.error("Erro ao limpar callinfo.json", err);
+      } else {
+        console.log("callinfo.json limpo com sucesso.");
+      }
+    });
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 module.exports = updateDb;

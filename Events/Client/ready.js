@@ -35,8 +35,6 @@ module.exports = {
         }
       }
     });
-    const updateDb = require("../../helpers/updateDb.js");
-    await updateDb();
     console.log("BOT online");
   },
 };
