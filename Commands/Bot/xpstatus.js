@@ -1,7 +1,8 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
-const configdev = require(`../../config/development`);
-const configprod = require(`../../config/production`);
+const config = require(`../../config/${process.env.MODE}`);
+const memberDb = require(`./../../Schemas/memberSchema`);
 let calculateXP = require(`../../helpers/calculateXP`);
+const { xp } = require("../../config/production");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -19,10 +20,33 @@ module.exports = {
     ),
 
   async execute(interaction, client) {
-    let username = interaction.options.getUser("membro") || interaction.user;
-    if (username.bot) return;
-    percent = 0.99;
-    const length = 70;
+    let user = interaction.options.getUser("membro") || interaction.user;
+    if (user.bot) return;
+    
+    const memberInfo = await memberDb.findOne({_id: user.id});
+    console.log(memberInfo);
+    const {xp_voice, xp_bonus, xp_chat} = memberInfo.xp;
+    const xp_status = await calculateXP(xp_voice, xp_chat, xp_bonus);
+
+    if (xp_status.level == 100) {
+      interaction.reply("Você já está no nível máximo");
+      return
+    }
+
+    const currentLevelIndex = config.xp.levels.findIndex(m => m.level == xp_status.level);
+    let currentLevel = config.xp.levels[currentLevelIndex];
+    let nextLevel = config.xp.levels[currentLevelIndex + 1]; 
+
+    if (!currentLevel){currentLevel = {xp_total: 0}}
+
+    console.log(`level: ${xp_status.level}\n
+                total xp: ${xp_status.xp_total}`);
+
+    let percent = (((xp_status.xp_total - currentLevel.xp_total) * 100) / (nextLevel.xp_total - currentLevel.xp_total) * 0.01).toFixed(2);
+
+    console.log(percent);
+    
+    const length = 34;
     const fillLength = Math.floor(length * percent);
     const fillChar = "|";
     const spaceChar = " ";
@@ -31,17 +55,18 @@ module.exports = {
 
     const responseEmbed = new EmbedBuilder()
       .setColor("#3a7c7c")
-      .setTitle(`Level x EM DESENVOLVIMENTO`)
+      .setTitle(`Level ${xp_status.level}`)
       .setDescription(
-        "```" + filledString + "```" + `\n x% para o próximo level.\n`
+        "```" + filledString + "```" + `\n 
+        ${xp_status.xp_total}/${nextLevel.xp_total} - lvl ${nextLevel.level}\n
+        ${percent * 100}% para o próximo level.\n`
       )
       .setFooter({
-        text: `${username.tag}!`,
-        iconURL: username.displayAvatarURL(),
+        text: `${user.tag}!`,
+        iconURL: user.displayAvatarURL(),
       });
 
-    //interaction.reply({ embeds: [responseEmbed] });
-    interaction.reply("Em desenvolvimento.");
+    interaction.reply({ embeds: [responseEmbed] });
   },
 };
 
