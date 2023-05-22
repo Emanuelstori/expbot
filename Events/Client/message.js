@@ -13,7 +13,7 @@ module.exports = {
     if (message.author.bot) return;
 
     // Carrega os dados do arquivo JSON
-    let pointsData = {};
+    let pointsData;
     try {
       pointsData = JSON.parse(fs.readFileSync(POINTS_FILE));
     } catch (err) {
@@ -28,17 +28,21 @@ module.exports = {
     let userPoints = pointsData[userId] || 0;
 
     // Adiciona um ponto ao usuário
-    userPoints= userPoints+10;
+    userPoints = userPoints + 10;
 
-    // Atualiza o número de pontos do usuário no arquivo
+    // Atualiza o número de pontos do usuário no objeto pointsData
     pointsData[userId] = userPoints;
 
-    // Escreve os dados atualizados no arquivo
-    try {
-      fs.writeFileSync(POINTS_FILE, JSON.stringify(pointsData));
-      console.log(`Pontos atualizados para o usuário ${userId}: ${userPoints}`);
-    } catch (err) {
-      console.error(`Erro ao salvar os pontos do usuário ${userId} no arquivo ${POINTS_FILE}: ${err}`);
-    }
+    // Salva os dados atualizados no arquivo
+    saveData(pointsData);
   },
 };
+
+function saveData(data) {
+  try {
+    fs.writeFileSync(POINTS_FILE, JSON.stringify(data));
+    console.log("Dados salvos com sucesso.");
+  } catch (err) {
+    console.error(`Erro ao salvar os dados no arquivo ${POINTS_FILE}: ${err}`);
+  }
+}

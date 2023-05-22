@@ -1,6 +1,6 @@
 const config = require(`../../config/${process.env.MODE}`);
 const memberDb = require("../../Schemas/memberSchema.js");
-var cron = require('node-cron');
+var cron = require("node-cron");
 
 module.exports = {
   name: "ready",
@@ -32,16 +32,21 @@ module.exports = {
               }
             }
           }
-        } else {
-          //insert user db
         }
       }
     });
-
+    const updateDb = require("../../helpers/updateDb.js");
+    await updateDb();
     console.log("BOT online");
   },
 };
 
-cron.schedule('* * */2 * * * ', ()=>{
-  //logica insert db
-})
+cron.schedule("*/30 * * * *", async () => {
+  // Lógica a ser executada a cada 30 minutos
+  try {
+    const updateDb = require("../../helpers/updateDb.js");
+    await updateDb();
+  } catch (err) {
+    console.log(err);
+  }
+});

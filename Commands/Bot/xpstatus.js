@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const configdev = require(`../../config/development`);
 const configprod = require(`../../config/production`);
+//let calculateXP = require(`../../helpers/calculateXP`);
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -39,7 +40,7 @@ module.exports = {
           return key;
         }
       }
-      return null;
+      return 0;
     };
     let valueToFind = result.roles[0];
     let key =
@@ -61,6 +62,8 @@ module.exports = {
 
     const totalxp = calculateXP(key, xpvoz, xpchat, xpbonus);
     //const percent = getProgressToNextLevel(key, 129600);
+    console.log(totalxp);
+
     const percent = getProgressToNextLevel(
       key,
       parseInt(totalxp.xp_total_points)
@@ -110,6 +113,9 @@ function calculateXP(level, xp_call, xp_chat, xp_bonus) {
 function getProgressToNextLevel(level, xp) {
   const levels = configdev.xp.levels;
   let grapLevelStats = levels.findIndex((obj) => obj[0].level == level);
+  if (!grapLevelStats) {
+    console.log("opa");
+  }
   let currentLevelXp;
   let nextLevelXp;
   levels[grapLevelStats].forEach((item) => {
