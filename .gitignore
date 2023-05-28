@@ -2,6 +2,7 @@
 
 node_modules
 jsonexamples
+database/*
 
 package-lock.json
 
