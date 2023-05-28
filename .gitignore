@@ -8,3 +8,5 @@ package-lock.json
 
 test.js
 data.json
+database/callinfo.json
+database/chatinfo.json
