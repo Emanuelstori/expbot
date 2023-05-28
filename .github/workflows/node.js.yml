@@ -9,8 +9,11 @@ jobs:
   build:
     runs-on: self-hosted
     steps:
-      - run: cd /var/myapps/expbot
+      - run: cd ~
       - run: git pull
       - run: npm i
-      - run: pm2 stop expBot
-      - run: pm2 start expBot
+      - run: pm2 stop new
+      - run: pm2 start index.js --name new
+      #- run: npm i
+      #- run: pm2 stop expBot
+      #- run: pm2 start expBot

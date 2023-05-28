@@ -6,7 +6,7 @@ const {
   Collection,
 } = require("discord.js");
 const mongoose = require("mongoose");
-
+const updateDb = require("./helpers/updateDb");
 const { loadEvents } = require("./Handlers/eventHandler");
 const { loadCommands } = require("./Handlers/commandHandler");
 
