@@ -19,12 +19,11 @@ module.exports = {
     ),
 
   async execute(interaction, client) {
-    if (interaction.channelId.toString() != "612121513960669227") return;
+    //if (interaction.channelId.toString() != "612121513960669227") return;
     let user = interaction.options.getUser("membro") || interaction.user;
     if (user.bot) return;
 
     const memberInfo = await memberDb.findOne({ _id: user.id });
-    console.log(memberInfo);
     const { xp_voice, xp_bonus, xp_chat } = memberInfo.xp;
     const xp_status = await calculateXP(xp_voice, xp_chat, xp_bonus);
 
@@ -32,6 +31,8 @@ module.exports = {
       interaction.reply("Você já está no nível máximo");
       return;
     }
+
+    var message = await interaction.reply("Carregando...");
 
     const currentLevelIndex = config.xp.levels.findIndex(
       (m) => m.level == xp_status.level
@@ -43,16 +44,11 @@ module.exports = {
       currentLevel = { xp_total: 0 };
     }
 
-    console.log(`level: ${xp_status.level}\n
-                total xp: ${xp_status.xp_total}`);
-
     let percent = (
       (((xp_status.xp_total - currentLevel.xp_total) * 100) /
         (nextLevel.xp_total - currentLevel.xp_total)) *
       0.01
     ).toFixed(2);
-
-    console.log(percent);
 
     const length = 34;
     const fillLength = Math.floor(length * percent);
@@ -70,14 +66,14 @@ module.exports = {
           "```" +
           `\n 
         ${xp_status.xp_total}/${nextLevel.xp_total} - lvl ${nextLevel.level}\n
-        ${percent * 100}% para o próximo level.\n`
+        ${(percent * 100).toFixed(2)}% para o próximo level.\n`
       )
       .setFooter({
         text: `${user.tag}!`,
         iconURL: user.displayAvatarURL(),
       });
 
-    interaction.reply({ embeds: [responseEmbed] });
+    message.edit({ embeds: [responseEmbed], content: "**Status:**" });
   },
 };
 
@@ -89,7 +85,6 @@ function getProgressToNextLevel(level, xp) {
     });
 
     if (!grapLevelStats || grapLevelStats == -1) {
-      console.log("caiu aq");
       return 0;
     }
     let currentLevelXp;
