@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+const config = require(`../../config/${process.env.MODE}`);
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -13,8 +14,7 @@ module.exports = {
     ),
 
   async execute(interaction, client) {
-    console.log(interaction.channelId.toString() != "612121513960669227");
-    if (interaction.channelId.toString() != "612121513960669227") return;
+    if (interaction.channelId.toString() != config.channels.commands) return;
     const membro = interaction.options.getUser("membro") || interaction.user;
     console.log(membro.displayAvatarURL({ size: 2048 }));
     const avatarEmbed = new EmbedBuilder()

@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder, Message } = require("discord.js");
 const config = require(`../../config/${process.env.MODE}`);
 const memberDb = require(`./../../Schemas/memberSchema`);
 let calculateXP = require(`../../helpers/calculateXP`);
@@ -19,21 +19,19 @@ module.exports = {
     ),
 
   async execute(interaction, client) {
-    //if (interaction.channelId.toString() != "612121513960669227") return;
+    if (interaction.channelId.toString() != config.channels.commands) return;
     let user = interaction.options.getUser("membro") || interaction.user;
     if (user.bot) return;
 
+    var message = await interaction.reply("Em desenvolvimento.");
     const memberInfo = await memberDb.findOne({ _id: user.id });
     const { xp_voice, xp_bonus, xp_chat } = memberInfo.xp;
     const xp_status = await calculateXP(xp_voice, xp_chat, xp_bonus);
 
     if (xp_status.level == 100) {
-      interaction.reply("Você já está no nível máximo");
+      message.edit("Você já está no nível máximo");
       return;
     }
-
-    var message = await interaction.reply("Carregando...");
-
     const currentLevelIndex = config.xp.levels.findIndex(
       (m) => m.level == xp_status.level
     );
