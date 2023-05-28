@@ -16,14 +16,14 @@ const client = new Client({
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.MessageContent,
-    GatewayIntentBits.GuildVoiceStates
+    GatewayIntentBits.GuildVoiceStates,
   ],
   partials: [
     Partials.Channel,
     Partials.Message,
     Partials.User,
     Partials.GuildMember,
-    Partials.GuildVoiceStates
+    Partials.GuildVoiceStates,
   ],
 });
 
@@ -35,8 +35,12 @@ client.login(process.env.TOKEN).then(async () => {
   loadEvents(client);
   loadCommands(client);
 
-  await mongoose.connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+  try {
+    await mongoose.connect(process.env.MONGO_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+  } catch (err) {
+    console.log(err);
+  }
 });
