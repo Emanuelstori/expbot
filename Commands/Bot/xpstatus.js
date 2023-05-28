@@ -2,7 +2,6 @@ const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const config = require(`../../config/${process.env.MODE}`);
 const memberDb = require(`./../../Schemas/memberSchema`);
 let calculateXP = require(`../../helpers/calculateXP`);
-const { xp } = require("../../config/production");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -20,32 +19,41 @@ module.exports = {
     ),
 
   async execute(interaction, client) {
+    if (interaction.channelId.toString() != "612121513960669227") return;
     let user = interaction.options.getUser("membro") || interaction.user;
     if (user.bot) return;
-    
-    const memberInfo = await memberDb.findOne({_id: user.id});
+
+    const memberInfo = await memberDb.findOne({ _id: user.id });
     console.log(memberInfo);
-    const {xp_voice, xp_bonus, xp_chat} = memberInfo.xp;
+    const { xp_voice, xp_bonus, xp_chat } = memberInfo.xp;
     const xp_status = await calculateXP(xp_voice, xp_chat, xp_bonus);
 
     if (xp_status.level == 100) {
       interaction.reply("Você já está no nível máximo");
-      return
+      return;
     }
 
-    const currentLevelIndex = config.xp.levels.findIndex(m => m.level == xp_status.level);
+    const currentLevelIndex = config.xp.levels.findIndex(
+      (m) => m.level == xp_status.level
+    );
     let currentLevel = config.xp.levels[currentLevelIndex];
-    let nextLevel = config.xp.levels[currentLevelIndex + 1]; 
+    let nextLevel = config.xp.levels[currentLevelIndex + 1];
 
-    if (!currentLevel){currentLevel = {xp_total: 0}}
+    if (!currentLevel) {
+      currentLevel = { xp_total: 0 };
+    }
 
     console.log(`level: ${xp_status.level}\n
                 total xp: ${xp_status.xp_total}`);
 
-    let percent = (((xp_status.xp_total - currentLevel.xp_total) * 100) / (nextLevel.xp_total - currentLevel.xp_total) * 0.01).toFixed(2);
+    let percent = (
+      (((xp_status.xp_total - currentLevel.xp_total) * 100) /
+        (nextLevel.xp_total - currentLevel.xp_total)) *
+      0.01
+    ).toFixed(2);
 
     console.log(percent);
-    
+
     const length = 34;
     const fillLength = Math.floor(length * percent);
     const fillChar = "|";
@@ -57,7 +65,10 @@ module.exports = {
       .setColor("#3a7c7c")
       .setTitle(`Level ${xp_status.level}`)
       .setDescription(
-        "```" + filledString + "```" + `\n 
+        "```" +
+          filledString +
+          "```" +
+          `\n 
         ${xp_status.xp_total}/${nextLevel.xp_total} - lvl ${nextLevel.level}\n
         ${percent * 100}% para o próximo level.\n`
       )
