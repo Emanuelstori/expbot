@@ -1,6 +1,6 @@
-const { SlashCommandBuilder, EmbedBuilder, Message } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const config = require(`../../config/${process.env.MODE}`);
-const memberDb = require(`./../../Schemas/memberSchema`);
+const { pool } = require(`../../database/connection/postgres`);
 let calculateXP = require(`../../helpers/calculateXP`);
 
 module.exports = {
@@ -23,55 +23,66 @@ module.exports = {
     let user = interaction.options.getUser("membro") || interaction.user;
     if (user.bot) return;
 
-    var message = await interaction.reply("Em desenvolvimento.");
-    const memberInfo = await memberDb.findOne({ _id: user.id });
-    const { xp_voice, xp_bonus, xp_chat } = memberInfo.xp;
-    const xp_status = await calculateXP(xp_voice, xp_chat, xp_bonus);
+    console.log([user.id]);
 
-    if (xp_status.level == 100) {
-      message.edit("Você já está no nível máximo");
-      return;
-    }
-    const currentLevelIndex = config.xp.levels.findIndex(
-      (m) => m.level == xp_status.level
-    );
-    let currentLevel = config.xp.levels[currentLevelIndex];
-    let nextLevel = config.xp.levels[currentLevelIndex + 1];
+    var message = await interaction.reply("Aguarde um momento.");
+    const query = "SELECT xp_call, xp_bonus, xp_chat FROM production.members WHERE id_discord = $1";
 
-    if (!currentLevel) {
-      currentLevel = { xp_total: 0 };
-    }
+    try {
+      const result = await pool.query(query, [user.id]);
+      const memberInfo = result.rows[0];
+      const { xp_call, xp_bonus, xp_chat } = memberInfo;
+      const xp_voice = xp_call;
+      const xp_status = await calculateXP(parseInt(xp_voice), parseInt(xp_chat), parseInt(xp_bonus));
 
-    let percent = (
-      (((xp_status.xp_total - currentLevel.xp_total) * 100) /
-        (nextLevel.xp_total - currentLevel.xp_total)) *
-      0.01
-    ).toFixed(2);
+      if (xp_status.level == 100) {
+        message.edit("Você já está no nível máximo");
+        return;
+      }
 
-    const length = 34;
-    const fillLength = Math.floor(length * percent);
-    const fillChar = "|";
-    const spaceChar = " ";
-    const filledString =
-      fillChar.repeat(fillLength) + spaceChar.repeat(length - fillLength);
+      const currentLevelIndex = config.xp.levels.findIndex(
+        (m) => m.level == xp_status.level
+      );
+      let currentLevel = config.xp.levels[currentLevelIndex];
+      let nextLevel = config.xp.levels[currentLevelIndex + 1];
 
-    const responseEmbed = new EmbedBuilder()
-      .setColor("#3a7c7c")
-      .setTitle(`Level ${xp_status.level}`)
-      .setDescription(
-        "```" +
-          filledString +
+      if (!currentLevel) {
+        currentLevel = { xp_total: 0 };
+      }
+
+      let percent = (
+        (((xp_status.xp_total - currentLevel.xp_total) * 100) /
+          (nextLevel.xp_total - currentLevel.xp_total)) *
+        0.01
+      ).toFixed(2);
+
+      const length = 34;
+      const fillLength = Math.floor(length * percent);
+      const fillChar = "|";
+      const spaceChar = " ";
+      const filledString =
+        fillChar.repeat(fillLength) + spaceChar.repeat(length - fillLength);
+
+      const responseEmbed = new EmbedBuilder()
+        .setColor("#3a7c7c")
+        .setTitle(`Level ${xp_status.level}`)
+        .setDescription(
           "```" +
-          `\n 
-        ${xp_status.xp_total}/${nextLevel.xp_total} - lvl ${nextLevel.level}\n
-        ${(percent * 100).toFixed(2)}% para o próximo level.\n`
-      )
-      .setFooter({
-        text: `${user.tag}!`,
-        iconURL: user.displayAvatarURL(),
-      });
+            filledString +
+            "```" +
+            `\n 
+          ${xp_status.xp_total}/${nextLevel.xp_total} - lvl ${nextLevel.level}\n
+          ${(percent * 100).toFixed(2)}% para o próximo level.\n`
+        )
+        .setFooter({
+          text: `${user.tag}!`,
+          iconURL: user.displayAvatarURL(),
+        });
 
-    message.edit({ embeds: [responseEmbed], content: "**Status:**" });
+      message.edit({ embeds: [responseEmbed], content: "**Status:**" });
+    } catch (error) {
+      console.error("Erro ao consultar o banco de dados:", error);
+    }
   },
 };
 

@@ -60,7 +60,8 @@ function disconnected(idUsuario) {
     return;
   }
   let userPoints = pointsData[idUsuario] || 0;
-  userPoints += getCallTime(idUsuario);
+  userPoints += getCallTime(idUsuario)/2;
+  if(userPoints <0) userPoints = 0;
   saveData(idUsuario, userPoints);
   delete usuariosAtivos[idUsuario];
 }
@@ -80,7 +81,7 @@ function saveData(id, pontos) {
     console.error(`Erro ao carregar o arquivo ${POINTS_FILE}: ${err}`);
     return;
   }
-  pointsData[id] = pontos;
+  pointsData[id] = parseInt(pontos);
   try {
     fs.writeFileSync(POINTS_FILE, JSON.stringify(pointsData));
     console.log(`Pontos atualizados para o usuário ${id}: ${pontos}`);

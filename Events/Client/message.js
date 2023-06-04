@@ -11,7 +11,6 @@ module.exports = {
   once: false,
   async execute(message) {
     if (message.author.bot) return;
-
     // Carrega os dados do arquivo JSON
     let pointsData;
     try {
@@ -28,7 +27,7 @@ module.exports = {
     let userPoints = pointsData[userId] || 0;
 
     // Adiciona um ponto ao usuário
-    userPoints = userPoints + 10;
+    userPoints = userPoints + 2;
 
     // Atualiza o número de pontos do usuário no objeto pointsData
     pointsData[userId] = userPoints;

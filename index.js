@@ -5,7 +5,7 @@ const {
   Partials,
   Collection,
 } = require("discord.js");
-const mongoose = require("mongoose");
+const { Pool } = require("pg");
 const updateDb = require("./helpers/updateDb");
 const { loadEvents } = require("./Handlers/eventHandler");
 const { loadCommands } = require("./Handlers/commandHandler");
@@ -31,16 +31,8 @@ client.commands = new Collection();
 
 module.exports = client;
 
+
 client.login(process.env.TOKEN).then(async () => {
   loadEvents(client);
   loadCommands(client);
-
-  try {
-    await mongoose.connect(process.env.MONGO_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-  } catch (err) {
-    console.log(err);
-  }
 });
