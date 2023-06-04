@@ -9,10 +9,10 @@ jobs:
   build:
     runs-on: self-hosted
     steps:
-      - run: cd ~
-      - run: git pull https://github.com/Emanuelstori/expbot.git main
-      - run: npm i
-      - run: pm2 restart new
+      #- run: cd ~
+      #- run: git pull https://github.com/Emanuelstori/expbot.git main
+      #- run: npm i
+      #- run: pm2 restart new
       #- run: npm i
       #- run: pm2 stop expBot
       #- run: pm2 start expBot
